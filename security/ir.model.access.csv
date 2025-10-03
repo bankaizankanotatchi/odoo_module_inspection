@@ -11,3 +11,5 @@ access_kes_inspections_sous_affaire_produit,kes_inspections.sous_affaire_produit
 access_kes_inspections_bond_commande,kes_inspections.bond_commande,model_kes_inspections_bond_commande,base.group_user,1,1,1,1
 access_kes_inspections_pv,kes_inspections.pv,model_kes_inspections_pv,base.group_user,1,1,1,1
 access_kes_inspections_enquete_satisfaction,kes_inspections.enquete_satisfaction,model_kes_inspections_enquete_satisfaction,base.group_user,1,1,1,1
+access_label_template,label_template,model_label_template,base.group_user,1,1,1,1
+access_label_generator,label_generator,model_label_generator,base.group_user,1,1,1,1

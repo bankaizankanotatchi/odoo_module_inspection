@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Label Template 1 - Extincteur Conforme -->
+        <record id="label_template_iec" model="label.template">
+            <field name="name">Extincteur Conforme (IEC)</field>
+            <field name="sequence">10</field>
+            <field name="active">True</field>
+            <field name="qr_position_x">1385</field>
+            <field name="qr_position_y">895</field>
+            <field name="qr_size">380</field>
+            <field name="client_number_x">1650</field>
+            <field name="client_number_y">135</field>
+            <field name="client_name_x">1250</field>
+            <field name="client_name_y">135</field>
+            <field name="font_size">96</field>
+            <field name="font_color">#000000</field>
+        </record>
+
+        <!-- Label Template 2 - Extincteur Non Conforme -->
+        <record id="label_template_ienc" model="label.template">
+            <field name="name">Extincteur Non Conforme (IENC)</field>
+            <field name="sequence">20</field>
+            <field name="active">True</field>
+            <field name="qr_position_x">1410</field>
+            <field name="qr_position_y">610</field>
+            <field name="qr_size">350</field>
+            <field name="client_number_x">1650</field>
+            <field name="client_number_y">130</field>
+            <field name="client_name_x">1250</field>
+            <field name="client_name_y">130</field>
+            <field name="font_size">96</field>
+            <field name="font_color">#000000</field>
+        </record>
+
+        <!-- Label Template 3 - Local Électrique -->
+        <record id="label_template_le" model="label.template">
+            <field name="name">Local Électrique (LE)</field>
+            <field name="sequence">30</field>
+            <field name="active">True</field>
+            <field name="qr_position_x">40</field>
+            <field name="qr_position_y">40</field>
+            <field name="qr_size">90</field>
+            <field name="client_number_x">1185</field>
+            <field name="client_number_y">320</field>
+            <field name="client_name_x">585</field>
+            <field name="client_name_y">320</field>
+            <field name="font_size">48</field>
+            <field name="font_color">#000000</field>
+        </record>
+
+        <!-- Label Template 4 - Vérification de Conformité des Installations Électriques -->
+        <record id="label_template_vcie" model="label.template">
+            <field name="name">Vérification de Conformité des Installations Électriques (VCIE)</field>
+            <field name="sequence">40</field>
+            <field name="active">True</field>
+            <field name="qr_position_x">50</field>
+            <field name="qr_position_y">40</field>
+            <field name="qr_size">100</field>
+            <field name="client_number_x">180</field>
+            <field name="client_number_y">50</field>
+            <field name="client_name_x">180</field>
+            <field name="client_name_y">85</field>
+            <field name="font_size">48</field>
+            <field name="font_color">#16a085</field>
+        </record>
+
+        <!-- Label Template 5 - Vérification Générale Périodique Ascenseur -->
+        <record id="label_template_vgpa" model="label.template">
+            <field name="name">Vérification Générale Périodique Ascenseur (VGPA)</field>
+            <field name="sequence">50</field>
+            <field name="active">True</field>
+            <field name="qr_position_x">461</field>
+            <field name="qr_position_y">380</field>
+            <field name="qr_size">200</field>
+            <field name="client_number_x">601</field>
+            <field name="client_number_y">45</field>
+            <field name="client_name_x">461</field>
+            <field name="client_name_y">580</field>
+            <field name="font_size">48</field>
+            <field name="font_color">#8e44ad</field>
+        </record>
+
+        <!-- Label Template 6 - Vérification Générale Périodique des Equipements Inapte au Service -->
+        <record id="label_template_vgpeis" model="label.template">
+            <field name="name">Vérification Générale Périodique des Equipements Inapte au Service (VGPEIS)</field>
+            <field name="sequence">60</field>
+            <field name="active">True</field>
+            <field name="qr_position_x">1410</field>
+            <field name="qr_position_y">630</field>
+            <field name="qr_size">350</field>
+            <field name="client_number_x">1620</field>
+            <field name="client_number_y">80</field>
+            <field name="client_name_x">1120</field>
+            <field name="client_name_y">120</field>
+            <field name="font_size">65</field>
+            <field name="font_color">#d35400</field>
+        </record>
+
+        <!-- Label Template 7 - Vérification Périodique Générale Equipements -->
+        <record id="label_template_vpge" model="label.template">
+            <field name="name">Vérification Périodique Générale Equipements (VPGE)</field>
+            <field name="sequence">70</field>
+            <field name="active">True</field>
+            <field name="qr_position_x">1220</field>
+            <field name="qr_position_y">475</field>
+            <field name="qr_size">210</field>
+            <field name="client_number_x">1720</field>
+            <field name="client_number_y">540</field>
+            <field name="client_name_x">1520</field>
+            <field name="client_name_y">540</field>
+            <field name="font_size">48</field>
+            <field name="font_color">#27ae60</field>
+        </record>
+
+        <!-- Label Template 8 - Vérification Thermographie Infrarouge -->
+        <record id="label_template_vti" model="label.template">
+            <field name="name">Vérification Thermographie Infrarouge (VTI)</field>
+            <field name="sequence">80</field>
+            <field name="active">True</field>
+            <field name="qr_position_x">730</field>
+            <field name="qr_position_y">390</field>
+            <field name="qr_size">290</field>
+            <field name="client_number_x">930</field>
+            <field name="client_number_y">680</field>
+            <field name="client_name_x">730</field>
+            <field name="client_name_y">680</field>
+            <field name="font_size">48</field>
+            <field name="font_color">#e74c3c</field>
+        </record>
+
+    </data>
+</odoo>

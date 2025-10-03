@@ -25,6 +25,14 @@ class InspectionSousAffaire(models.Model):
         string='Procès-verbaux',
     )
 
+    partner_id = fields.Many2one(
+        'res.partner', 
+        string='Client',
+        compute='_compute_partner_id',
+        store=True,
+        readonly=True
+    ) 
+
     enquete_satisfaction_ids = fields.One2many(
         'kes_inspections.enquete_satisfaction',
         'sous_affaire_id',
@@ -89,6 +97,26 @@ class InspectionSousAffaire(models.Model):
     # ─────────────────────────────────────────────────────────────
     # 🔸 MÉTHODES DE CALCUL
     # ─────────────────────────────────────────────────────────────
+
+    @api.depends('affaire_id', 'affaire_id.client_id')
+    def _compute_partner_id(self):
+        """Calcule le partner_id depuis le client_id de l'affaire principale"""
+        for rec in self:
+            if rec.affaire_id and rec.affaire_id.client_id:
+                rec.partner_id = rec.affaire_id.client_id
+            else:
+                rec.partner_id = False
+    
+    @api.model
+    def create(self, vals):
+        """Surcharge de la création pour s'assurer qu'on a une affaire avec client"""
+        # Vérifier que l'affaire a un client
+        if vals.get('affaire_id'):
+            affaire = self.env['kes_inspections.affaire'].browse(vals['affaire_id'])
+            if not affaire.client_id:
+                raise ValidationError("L'affaire principale doit avoir un client défini avant de créer une sous-affaire.")
+        
+        return super().create(vals)
     
     @api.depends('affaire_id', 'affaire_id.sale_order_id', 'affaire_id.sale_order_id.order_line')
     def _compute_types_intervention(self):
@@ -280,6 +308,49 @@ class InspectionSousAffaire(models.Model):
                 'sticky': False,
             }
         }
+    
+    def action_download_all_etiquettes(self):
+        """Télécharge toutes les étiquettes de la sous-affaire en ZIP"""
+        self.ensure_one()
+        
+        if not self.etiquette_ids:
+            raise ValidationError("Aucune étiquette à télécharger pour cette sous-affaire.")
+        
+        # Utilise la méthode du modèle etiquette pour générer le ZIP
+        return self.etiquette_ids.action_generate_zip_etiquettes()
+
+    def action_generate_zip_etiquettes(self):
+        """Méthode proxy pour appeler la méthode sur les étiquettes sélectionnées"""
+        self.ensure_one()
+        
+        if not self.etiquette_ids:
+            raise ValidationError("Aucune étiquette sélectionnée.")
+        
+        return self.etiquette_ids.action_generate_zip_etiquettes()
+    
+    def action_generer_et_tout_telecharger(self):
+        """Génère toutes les étiquettes et les télécharge immédiatement en ZIP"""
+        self.ensure_one()
+        
+        # 1. Générer toutes les étiquettes
+        for produit in self.produit_etiquette_ids:
+            if produit.nombre_etiquettes > 0:
+                produit.action_generer_etiquettes()
+        
+        # 2. Télécharger le ZIP
+        if self.etiquette_ids:
+            return self.etiquette_ids.action_generate_zip_etiquettes()
+        else:
+            raise ValidationError("Aucune étiquette à télécharger. Avez-vous généré des étiquettes ?")
+
+    def action_download_all_etiquettes(self):
+        """Télécharge toutes les étiquettes existantes en ZIP"""
+        self.ensure_one()
+        
+        if not self.etiquette_ids:
+            raise ValidationError("Aucune étiquette générée à télécharger.")
+        
+        return self.etiquette_ids.action_generate_zip_etiquettes()
     
 
 class KesBondCommande(models.Model):

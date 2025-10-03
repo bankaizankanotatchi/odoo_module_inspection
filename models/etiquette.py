@@ -1,9 +1,15 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
-import unicodedata
 import base64
 from io import BytesIO
 import qrcode
+import zipfile
+
+try:
+    from PIL import Image, ImageDraw, ImageFont
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
 
 class InspectionEtiquette(models.Model):
     _name = 'kes_inspections.etiquette'
@@ -14,73 +20,54 @@ class InspectionEtiquette(models.Model):
         ('code_etiquette_unique', 'unique(code_etiquette)', 'Le code étiquette doit être unique!')
     ]
     
-    # 🔹 LIENS AVEC SOUS-AFFAIRE ET PRODUIT
-    sous_affaire_id = fields.Many2one(
-        'kes_inspections.sous_affaire',
-        string='Sous-affaire',
-        ondelete='cascade'
+    # Champs existants
+    name = fields.Char(string='Nom étiquette', compute='_compute_name', store=True)
+    code_etiquette = fields.Char(string='Code étiquette unique', required=True, readonly=True)
+    numero_etiquette = fields.Integer(string='Numéro dans la série', required=True)
+    
+    sous_affaire_id = fields.Many2one('kes_inspections.sous_affaire', string='Sous-affaire', required=True, ondelete='cascade')
+    
+    # 🔥 AJOUTER CE CHAMP MANQUANT
+    affaire_id = fields.Many2one(
+        'kes_inspections.affaire',
+        string='Affaire',
+        related='sous_affaire_id.affaire_id',
+        store=True,
+        readonly=True
+    )
+    
+    partner_id = fields.Many2one(
+        'res.partner', 
+        string='Client',
+        compute='_compute_partner_id',
+        store=True,
+        readonly=True
     )
     
     sous_affaire_produit_id = fields.Many2one(
-        'kes_inspections.sous_affaire_produit',
+        'kes_inspections.sous_affaire_produit', 
         string='Produit sous-affaire',
         ondelete='cascade'
     )
     
     product_id = fields.Many2one(
-        'product.product',
+        'product.product', 
         string='Produit',
         related='sous_affaire_produit_id.product_id',
         store=True,
         readonly=True
     )
     
-    # Champs existants
-    name = fields.Char(string='Nom étiquette', compute='_compute_name', store=True)
-    code_etiquette = fields.Char(string='Code étiquette unique', required=True, readonly=True)
-    numero_etiquette = fields.Integer(string='Numéro dans la série', required=True)
-    
     equipement_id = fields.Many2one('kes_inspections.equipement', string='Équipement', required=True, ondelete='cascade')
+    equipement_name = fields.Char(string='Nom équipement', related='equipement_id.name', readonly=True)
+    equipement_type = fields.Selection(string='Type équipement', related='equipement_id.type_equipement', readonly=True)
+    
     date_generation = fields.Date(string='Date de génération', default=fields.Date.today, readonly=True)
     
-    # Champs liés à l'équipement
-    equipement_name = fields.Char(string='Nom équipement', related='equipement_id.name', readonly=True)
+    # Template associé automatiquement
+    label_template_id = fields.Many2one('label.template', string='Modèle', compute='_compute_label_template', store=True)
 
-    @api.depends('equipement_name')
-    def _compute_equipement_ascii(self):
-        for rec in self:
-            if rec.equipement_name:
-                # Supprimer les accents
-                rec.equipement_ascii = unicodedata.normalize('NFKD', rec.equipement_name).encode('ASCII', 'ignore').decode('utf-8')
-            else:
-                rec.equipement_ascii = ''
-
-    equipement_ascii = fields.Char(string="Equipement ASCII", compute="_compute_equipement_ascii")
-
-    equipement_type = fields.Selection(string='Type équipement', related='equipement_id.type_equipement', readonly=True)
-    affaire_id = fields.Many2one(string='Affaire', related='equipement_id.affaire_id', readonly=True)
-    
-    # QR Code dynamique
-    qr_code = fields.Binary(string='QR Code', compute='_generate_qr_code', store=True)
-    qr_code_url = fields.Char(string='URL QR Code', compute='_generate_qr_code', store=True)
-
-    # NOUVEAU : Champ spécifique pour le template PDF
-    qr_code_pdf = fields.Char(string='QR Code PDF', compute='_compute_qr_code_pdf')
-
-    @api.depends('qr_code')
-    def _compute_qr_code_pdf(self):
-        """Convertit le QR Code Binary en string pour le template PDF"""
-        for etiquette in self:
-            if etiquette.qr_code:
-                # Conversion du Binary en string base64
-                if isinstance(etiquette.qr_code, bytes):
-                    etiquette.qr_code_pdf = etiquette.qr_code.decode('utf-8')
-                else:
-                    etiquette.qr_code_pdf = str(etiquette.qr_code)
-            else:
-                etiquette.qr_code_pdf = ''
-
-    # Liens vers les rapports
+        # Liens vers les rapports
     rapports_ids = fields.One2many('kes_inspections.rapport', 'etiquette_id', string='Rapports PDF')
     rapport_count = fields.Integer(string='Nombre de rapports', compute='_compute_rapport_count', store=True)
 
@@ -89,35 +76,41 @@ class InspectionEtiquette(models.Model):
     rapport_filename = fields.Char(string="Nom du fichier")
     rapport_file = fields.Binary(string="Fichier")
     
-
-    # Type d'étiquette
-    etiquette_modele = fields.Char(string="Modèle d'étiquette", compute='_compute_modele_etiquette', store=True)
-
-    # Mapping des modèles d'étiquettes
-    _MODELES_ETIQUETTES = {
-        'inspection_electrique': "Étiquette Inspection Électrique (Nom + N° Armoire)",
-        'inspection_thermographie': "Étiquette Thermographie (Quantité à générer)",
-        'identification_local': "Étiquette Local Électrique (Nom + N° Local)",
-        'ascenseur': "Étiquette Ascenseur (Quantité)",
-        'verification_periodique': "Étiquette Vérification Périodique (N° Appareil + Quantité)",
-        'verification_extincteur': "Étiquette Extincteur (N° Extincteur + Quantité)",
-        'arc_flash': "Étiquette Arc Flash (Import Excel)",
-        'plaque_identification': "Plaque Identification Extérieure (N° Extincteur + Quantité)"
+    # QR Code
+    qr_code = fields.Binary(string='QR Code', compute='_generate_qr_code', store=True)
+    qr_code_url = fields.Char(string='URL QR Code', compute='_generate_qr_code', store=True)
+    
+    # Mapping des templates
+    _MAPPING_EQUIPEMENT_TEMPLATE = {
+        'inspection_electrique': 'label_template_iec',
+        'inspection_thermographie': 'label_template_vti', 
+        'identification_local': 'label_template_le',
+        'ascenseur': 'label_template_vgpa',
+        'verification_periodique': 'label_template_vpge',
+        'verification_extincteur': 'label_template_ienc',
+        'arc_flash': 'label_template_vcie',
+        'plaque_identification': 'label_template_vgpeis'
     }
 
-    # ─────────────────────────────────────────────────────────────
-    # 🔸 MÉTHODES DE CALCUL
-    # ─────────────────────────────────────────────────────────────
-    
-    @api.depends('rapports_ids')
-    def _compute_rapport_count(self):
+    @api.depends('sous_affaire_id')
+    def _compute_partner_id(self):
+        """Calcule le partner_id depuis la sous-affaire"""
         for rec in self:
-            rec.rapport_count = len(rec.rapports_ids)
+            if rec.sous_affaire_id and hasattr(rec.sous_affaire_id, 'partner_id'):
+                rec.partner_id = rec.sous_affaire_id.partner_id
+            else:
+                rec.partner_id = False
 
     @api.depends('equipement_type')
-    def _compute_modele_etiquette(self):
+    def _compute_label_template(self):
+        """Assigne automatiquement le template basé sur le type d'équipement"""
         for rec in self:
-            rec.etiquette_modele = self._MODELES_ETIQUETTES.get(rec.equipement_type, "Modèle standard")
+            template_xml_id = self._MAPPING_EQUIPEMENT_TEMPLATE.get(rec.equipement_type)
+            if template_xml_id:
+                template = self.env.ref(f'kes_inspections.{template_xml_id}', raise_if_not_found=False)
+                rec.label_template_id = template
+            else:
+                rec.label_template_id = False
 
     @api.depends('code_etiquette')
     def _compute_name(self):
@@ -126,77 +119,199 @@ class InspectionEtiquette(models.Model):
 
     @api.depends('code_etiquette')
     def _generate_qr_code(self):
-        """Génère le QR Code (image + URL)"""
+        """Génère le QR Code"""
         for etiquette in self:
             if etiquette.code_etiquette:
                 base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
                 url = f"{base_url}/inspection/etiquette/{etiquette.code_etiquette}"
                 etiquette.qr_code_url = url
 
-                # Génération QR code image
-                qr = qrcode.QRCode(
-                    version=1,
-                    error_correction=qrcode.constants.ERROR_CORRECT_L,
-                    box_size=10,
-                    border=4
-                )
+                qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
                 qr.add_data(url)
                 qr.make(fit=True)
                 img = qr.make_image(fill_color="black", back_color="white")
 
-                # ⚠️ Encodage en base64 côté Python
                 buffer = BytesIO()
                 img.save(buffer, format="PNG")
-                etiquette.qr_code = base64.b64encode(buffer.getvalue()).decode('utf-8')  # stocke le Base64 en string
-
+                etiquette.qr_code = base64.b64encode(buffer.getvalue())
             else:
                 etiquette.qr_code = False
                 etiquette.qr_code_url = False
 
-
-    # ─────────────────────────────────────────────────────────────
-    # 🔸 NOUVELLE MÉTHODE POUR UPLOAD
-    # ─────────────────────────────────────────────────────────────
-    
-    def action_upload_rapport(self):
-        """Upload un nouveau rapport pour cette étiquette"""
+    def _get_default_font(self, size=12, bold=False):
+        """Retourne une police par défaut, optionnellement en gras"""
+        try:
+            if bold:
+                # Essayer d'abord une police en gras
+                try:
+                    return ImageFont.truetype("/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf", size)
+                except:
+                    # Fallback : utiliser la police normale en augmentant la taille pour simuler le gras
+                    return ImageFont.truetype("/usr/share/fonts/dejavu/DejaVuSans.ttf", int(size * 1.1))
+            else:
+                return ImageFont.truetype("/usr/share/fonts/dejavu/DejaVuSans.ttf", size)
+        except:
+            try:
+                return ImageFont.load_default()
+            except:
+                return None
+            
+    def generate_etiquette_image(self):
+        """Génère l'image de l'étiquette avec le template"""
         self.ensure_one()
         
-        if not self.rapport_filename or not self.rapport_file:
-            raise ValidationError("Veuillez sélectionner un fichier et donner un nom.")
+        if not self.label_template_id:
+            raise ValidationError("Aucun modèle d'étiquette associé.")
         
-        # Vérifier l'extension du fichier
-        filename_lower = self.rapport_filename.lower()
-        if not (filename_lower.endswith('.pdf') or filename_lower.endswith('.doc') or filename_lower.endswith('.docx')):
-            raise ValidationError("Seuls les fichiers PDF et Word sont acceptés.")
+        if not self.label_template_id.template_image:
+            raise ValidationError("Le modèle d'étiquette n'a pas d'image de base.")
         
-        # Déterminer le type de fichier
-        file_type = 'pdf' if filename_lower.endswith('.pdf') else 'word'
+        if not PIL_AVAILABLE:
+            raise ValidationError("La bibliothèque PIL/Pillow n'est pas installée.")
         
-        # Créer le rapport
-        rapport_vals = {
-            'name': f"Rapport - {self.code_etiquette}",
-            'filename': self.rapport_filename,
-            'file': self.rapport_file,
-            'file_type': file_type,
-            'etiquette_id': self.id,
-            'sous_affaire_id': self.sous_affaire_id.id,
-        }
+        try:
+            # Charger l'image template
+            template_data = base64.b64decode(self.label_template_id.template_image)
+            base_img = Image.open(BytesIO(template_data))
+            
+            if base_img.mode not in ('RGB', 'RGBA'):
+                base_img = base_img.convert('RGBA')
+            
+            original_size = base_img.size
+            
+            # Générer QR code
+            partner_name = self.partner_id.name if self.partner_id else "Client non défini"
+            product_name = self.product_id.name if self.product_id else "N/A"
+            qr_data = f"{self.code_etiquette}\nClient: {partner_name}\nProduit: {product_name}"
+            
+            qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+            qr.add_data(qr_data)
+            qr.make(fit=True)
+            qr_img = qr.make_image(fill_color="black", back_color="white")
+            qr_img = qr_img.resize((self.label_template_id.qr_size, self.label_template_id.qr_size), Image.Resampling.LANCZOS)
+            
+            # Coller QR code
+            if base_img.mode == 'RGBA':
+                base_img.paste(qr_img, (self.label_template_id.qr_position_x, self.label_template_id.qr_position_y), qr_img)
+            else:
+                base_img.paste(qr_img, (self.label_template_id.qr_position_x, self.label_template_id.qr_position_y))
+            
+            # Ajouter texte
+            draw = ImageDraw.Draw(base_img)
+            font = self._get_default_font(self.label_template_id.font_size)
+            
+            # 🔥 SUPPRIMÉ : Ancien bloc pour le code étiquette
+            # if self.label_template_id.client_number_x and self.label_template_id.client_number_y:
+            #     draw.text(
+            #         (self.label_template_id.client_number_x, self.label_template_id.client_number_y),
+            #         self.code_etiquette,
+            #         fill=self.label_template_id.font_color,
+            #         font=font
+            #     )
+            
+            # 🔥 NOUVEAU : Format client/lieu_intervention/numero_etiquette
+            if self.label_template_id.client_name_x and self.label_template_id.client_name_y:
+                # Récupérer le nom du client
+                client_name = self.partner_id.name if self.partner_id else "Client"
+                
+                # Récupérer le lieu d'intervention depuis l'affaire principale
+                lieu_intervention = ""
+                if self.affaire_id and self.affaire_id.lieu_intervention:
+                    lieu_intervention = self.affaire_id.lieu_intervention
+                elif self.affaire_id and self.affaire_id.site_intervention:
+                    lieu_intervention = self.affaire_id.site_intervention
+                else:
+                    lieu_intervention = "Lieu"
+                
+                # Limiter à 8 caractères maximum pour chaque partie
+                if len(client_name) > 8:
+                    client_formatted = client_name[:8]
+                else:
+                    client_formatted = client_name
+                
+                if len(lieu_intervention) > 8:
+                    lieu_formatted = lieu_intervention[:8]
+                else:
+                    lieu_formatted = lieu_intervention
+                
+                # 🔥 FORMAT : client/lieu/numero
+                client_text = f"{client_formatted}/{lieu_formatted}/{self.numero_etiquette}"
+                
+                draw.text(
+                    (self.label_template_id.client_name_x, self.label_template_id.client_name_y),
+                    client_text,
+                    fill=self.label_template_id.font_color,
+                    font=font
+                )
+            
+            # Redimensionner si nécessaire
+            if base_img.size != original_size:
+                base_img = base_img.resize(original_size, Image.Resampling.LANCZOS)
+            
+            return base_img
+            
+        except Exception as e:
+            raise ValidationError(f"Erreur lors de la génération d'image: {str(e)}")
         
-        self.env['kes_inspections.rapport'].create(rapport_vals)
+    def action_generate_zip_etiquettes(self):
+        """Génère un ZIP avec toutes les étiquettes sélectionnées"""
+        if not self:
+            raise ValidationError("Aucune étiquette sélectionnée.")
         
-        # Réinitialiser les champs d'upload
-        self.rapport_filename = False
-        self.rapport_file = False
+        zip_buffer = BytesIO()
+        
+        # 🔥 CORRECTION : Nom du ZIP basé sur la référence de la sous-affaire SANS créer de dossiers
+        if len(self) == 1:
+            # Une seule étiquette : nom basé sur la sous-affaire
+            sous_affaire_ref = self.sous_affaire_id.name or "etiquettes"
+            zip_folder_name = sous_affaire_ref.replace('/', '_').replace('\\', '_')  # 🔥 Supprimer les slashes
+        else:
+            # Plusieurs étiquettes : chercher une sous-affaire commune
+            sous_affaires = self.mapped('sous_affaire_id')
+            if len(sous_affaires) == 1:
+                sous_affaire_ref = sous_affaires.name
+                zip_folder_name = sous_affaire_ref.replace('/', '_').replace('\\', '_')  # 🔥 Supprimer les slashes
+            else:
+                # Étiquettes de différentes sous-affaires : nom générique
+                zip_folder_name = f"etiquettes_{fields.Datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for etiquette in self:
+                try:
+                    # Générer l'image
+                    etiquette_image = etiquette.generate_etiquette_image()
+                    
+                    # Convertir en bytes
+                    img_buffer = BytesIO()
+                    etiquette_image.save(img_buffer, format='PNG')
+                    img_buffer.seek(0)
+                    
+                    # 🔥 CORRECTION : Nom de fichier SIMPLE sans chemin
+                    filename = f"etiquette_{etiquette.code_etiquette}.png"
+                    zip_file.writestr(filename, img_buffer.getvalue())
+                    
+                except Exception as e:
+                    raise ValidationError(f"Erreur avec l'étiquette {etiquette.code_etiquette}: {str(e)}")
+        
+        zip_buffer.seek(0)
+        zip_data = base64.b64encode(zip_buffer.getvalue())
+        
+        # 🔥 CORRECTION : Nom du fichier ZIP propre
+        zip_filename = f"{zip_folder_name}.zip"
+        
+        # Créer attachment pour téléchargement
+        attachment = self.env['ir.attachment'].create({
+            'name': zip_filename,
+            'type': 'binary',
+            'datas': zip_data,
+            'res_model': 'kes_inspections.etiquette',
+            'mimetype': 'application/zip'
+        })
         
         return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': 'Rapport uploadé',
-                'message': f'Le rapport a été uploadé avec succès pour l\'étiquette {self.code_etiquette}',
-                'sticky': False,
-            }
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{attachment.id}?download=true',
+            'target': 'self',
         }
 
     @api.model
@@ -206,70 +321,7 @@ class InspectionEtiquette(models.Model):
             if existing:
                 raise ValidationError(f"Le code étiquette {vals['code_etiquette']} existe déjà!")
         return super().create(vals)
-
-    # ─────────────────────────────────────────────────────────────
-    # 🔸 ACTIONS
-    # ─────────────────────────────────────────────────────────────
-
-    def action_voir_rapports(self):
-        """Ouvre la vue liste des rapports liés à cette étiquette"""
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': f'Rapports - {self.code_etiquette}',
-            'res_model': 'kes_inspections.rapport',
-            'view_mode': 'list,form,kanban',
-            'domain': [('etiquette_id', '=', self.id)],
-            'context': {
-                'default_etiquette_id': self.id,
-                'default_sous_affaire_id': self.sous_affaire_id.id if self.sous_affaire_id else False
-            }
-        }
     
-    def print_etiquette(self):
-        """Télécharger l'étiquette PDF correspondant au type d'équipement"""
-        self.ensure_one()
-        
-        report_map = {
-            'inspection_electrique': 'report_etiquette_inspection_electrique',
-            'inspection_thermographie': 'report_etiquette_thermographie',
-            'identification_local': 'report_etiquette_identification_local',
-            'ascenseur': 'report_etiquette_ascenseur',
-            'verification_periodique': 'report_etiquette_verification_periodique',
-            'verification_extincteur': 'report_etiquette_verification_extincteur',
-            'arc_flash': 'report_etiquette_arc_flash',
-            'plaque_identification': 'report_etiquette_plaque_identification',
-        }
-        
-        type_etiquette = self.equipement_type
-        report_id = report_map.get(type_etiquette)
-        
-        if not report_id:
-            raise ValidationError(f"Aucun rapport PDF défini pour le type : {type_etiquette}")
-        
-        # Construction de l'External ID complet
-        report_external_id = f'kes_inspections.{report_id}'
-        report = self.env.ref(report_external_id)
-
-        # ✅ Version compatible Odoo 16+
-        pdf_content, _ = report._render_qweb_pdf(report.id, res_ids=self.ids)
-
-        pdf_base64 = base64.b64encode(pdf_content)
-        
-        attachment = self.env['ir.attachment'].create({
-            'name': f'Etiquette_{self.code_etiquette}.pdf',
-            'type': 'binary',
-            'datas': pdf_base64,
-            'res_model': 'kes_inspections.etiquette',
-            'res_id': self.id,
-            'mimetype': 'application/pdf'
-        })
-        
-        return {
-            'type': 'ir.actions.act_url',
-            'url': f'/web/content/{attachment.id}?download=true',
-            'target': 'self',
-        }
 
 
     def download_qr_code(self):

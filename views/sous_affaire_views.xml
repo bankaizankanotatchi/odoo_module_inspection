@@ -179,21 +179,44 @@
                                 </field>
                                 
                                 <group>
-                                    <button name="action_generer_toutes_etiquettes" type="object" string="Générer toutes les étiquettes" class="btn-primary"/>
-                                    <button name="action_download_all_etiquettes" type="object" string="Télécharger toutes en ZIP" class="btn-secondary"/>
+                                    <!-- MODIFIÉ : Bouton "Télécharger toutes en ZIP" qui génère ET télécharge -->
+                                    <button name="action_generer_et_tout_telecharger" type="object" string="📥 Générer et Télécharger ZIP" class="btn-primary"
+                                            confirm="Générer toutes les étiquettes et les télécharger dans un ZIP ?"/>
                                 </group>
                             </group>
                             
                             <group string="Étiquettes générées (vue globale)">
-                                <field name="etiquette_ids" readonly="1">
+                                <div class="alert alert-success" role="alert" invisible="etiquette_count &gt; 0">
+                                    <strong>Aucune étiquette générée.</strong> Utilisez les boutons ci-dessus pour générer des étiquettes.
+                                </div>
+                                
+                                <field name="etiquette_ids" readonly="1" invisible="etiquette_count == 0">
                                     <list>
                                         <field name="code_etiquette" string="Code unique"/>
-                                        <field name="product_id" string="Produit" related="sous_affaire_produit_id.product_id"/>
+                                        <field name="product_id" string="Produit"/>
                                         <field name='numero_etiquette' string="Numéro"/>
+                                        <field name="equipement_type" string="Type"/>
                                         <field name="date_generation" string="Date génération"/>
-                                        <button name="print_etiquette" type="object" string="Imprimer" class="btn-secondary"/>
+                                        
+                                        <!-- Bouton pour télécharger l'étiquette en PNG -->
+                                        <button name="action_generate_zip_etiquettes" type="object" string="Télécharger" class="btn-success"
+                                                confirm="Générer et télécharger cette étiquette en PNG ?"/>
                                     </list>
                                 </field>
+                                
+                                <!-- 🔥 NOUVEAU : Bouton pour télécharger TOUTES les étiquettes en ZIP -->
+                                <div class="oe_button_box" invisible="etiquette_count == 0">
+                                    <button name="action_download_all_etiquettes" type="object" 
+                                            class="oe_stat_button" icon="fa-download"
+                                            string="Télécharger toutes en ZIP">
+                                        <div class="o_field_widget o_stat_info">
+                                            <span class="o_stat_value">
+                                                <i class="fa fa-download"/> ZIP
+                                            </span>
+                                            <span class="o_stat_text">Toutes les étiquettes</span>
+                                        </div>
+                                    </button>
+                                </div>
                             </group>
                         </page>
 

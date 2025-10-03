@@ -19,6 +19,7 @@
 
         'data/sequences.xml',
         'data/inspecteur_data.xml',
+        'data/label_templates.xml', 
         
         'views/inspection_affaire_views.xml',
         'views/sous_affaire_views.xml',
@@ -30,17 +31,20 @@
         'views/sale_order_views.xml',
         'views/menus.xml',
         
-        'report/report_actions.xml',
-        'report/report_etiquette_inspection_electrique_template.xml',
-        'report/report_etiquette_thermographie_template.xml',
-        'report/report_etiquette_identification_local_template.xml',
-        'report/report_etiquette_ascenseur_template.xml',
-        'report/report_etiquette_verification_periodique_template.xml',
-        'report/report_etiquette_verification_extincteur_template.xml',
-        'report/report_etiquette_arc_flash_template.xml',
-        'report/report_etiquette_plaque_identification_template.xml'
+    ],
+    'images': [
+        'static/description/icon.png',
+        'static/description/templates/iec.png',
+        'static/description/templates/ienc.png',
+        'static/description/templates/le.png',
+        'static/description/templates/vcie.png',
+        'static/description/templates/vgpa.png',
+        'static/description/templates/vgpeis.png',
+        'static/description/templates/vpge.png',
+        'static/description/templates/vti.png',
     ],
     'installable': True,
     'application': True,
     'license': 'LGPL-3',
+    'post_init_hook': 'post_init_hook',
 }

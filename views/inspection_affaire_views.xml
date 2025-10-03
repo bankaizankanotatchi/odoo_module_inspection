@@ -151,9 +151,9 @@
                             <field name="sous_affaire_ids" context="{'default_affaire_id': id, 'default_name': 'Génération...'}" editable="bottom">
                                 <list>
                                     <field name="name" string="Référence"/>
-                                    <field name="date_creation" string="Date création"/>
-                                    <field name="state" string="Statut"/>
                                     <field name="description" string="Description"/>
+                                    <field name="date_creation" string="Date création"/>
+                                    <field name="state" string="Statut"/> 
                                 </list>
                                 <form>
                                     <sheet>

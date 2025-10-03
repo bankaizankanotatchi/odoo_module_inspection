@@ -3,6 +3,10 @@ from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 import secrets
 import string
+import base64
+from io import BytesIO
+import zipfile
+
 
 class InspectionEquipement(models.Model):
     _name = 'kes_inspections.equipement'
@@ -151,4 +155,47 @@ class InspectionEquipement(models.Model):
             'view_mode': 'list,form',
             'domain': [('equipement_id', '=', self.id)],
             'context': {'default_equipement_id': self.id}
+        }
+    
+    def action_generate_zip_etiquettes(self):
+        """Génère un ZIP avec toutes les étiquettes sélectionnées"""
+        if not self:
+            raise ValidationError("Aucune étiquette sélectionnée.")
+        
+        zip_buffer = BytesIO()
+        
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for etiquette in self:
+                try:
+                    # Générer l'image
+                    etiquette_image = etiquette.generate_etiquette_image()
+                    
+                    # Convertir en bytes
+                    img_buffer = BytesIO()
+                    etiquette_image.save(img_buffer, format='PNG')
+                    img_buffer.seek(0)
+                    
+                    # Ajouter au ZIP
+                    filename = f"etiquette_{etiquette.code_etiquette}.png"
+                    zip_file.writestr(filename, img_buffer.getvalue())
+                    
+                except Exception as e:
+                    raise ValidationError(f"Erreur avec l'étiquette {etiquette.code_etiquette}: {str(e)}")
+        
+        zip_buffer.seek(0)
+        zip_data = base64.b64encode(zip_buffer.getvalue())
+        
+        # Créer attachment pour téléchargement
+        attachment = self.env['ir.attachment'].create({
+            'name': f'etiquettes_{fields.Datetime.now().strftime("%Y%m%d_%H%M%S")}.zip',
+            'type': 'binary',
+            'datas': zip_data,
+            'res_model': 'kes_inspections.etiquette',
+            'mimetype': 'application/zip'
+        })
+        
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{attachment.id}?download=true',
+            'target': 'self',
         }

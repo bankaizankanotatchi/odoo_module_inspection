@@ -1,0 +1,81 @@
+.label-generator-progress {
+    margin: 10px 0;
+}
+
+.label-generator-progress .progress-bar {
+    transition: width 0.3s ease;
+}
+
+.label-generator-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.label-generator-component {
+    padding: 15px;
+}
+
+.label-generator-component .alert {
+    border-radius: 8px;
+    padding: 12px 16px;
+}
+
+.label-generator-component .alert-info {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+    color: #0d47a1;
+}
+
+.label-generator-component .fa-spinner {
+    margin-right: 8px;
+}
+
+/* Styles pour les vues form */
+.o_form_view .label-template-preview {
+    max-width: 300px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.o_form_view .position-group {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+/* Badges pour les états */
+.badge-draft {
+    background-color: #6c757d;
+}
+
+.badge-generated {
+    background-color: #28a745;
+}
+
+.badge-downloaded {
+    background-color: #17a2b8;
+}
+
+/* Amélioration des boutons */
+.btn-download {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.btn-download:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+/* Animation de chargement */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}

@@ -63,12 +63,34 @@
                                 <list>
                                     <field name="code_etiquette" string="Code unique"/>
                                     <field name="numero_etiquette" string="Numéro"/>
-                                    <field name="equipement_name" string="Équipement"/>
+                                    <field name="product_id" string="Produit"/>
+                                    <field name="equipement_type" string="Type"/>
                                     <field name="date_generation" string="Date génération"/>
-                                    <field name="qr_code" string="QR Code" widget="image" options="{'preview_image': 'qr_code'}"/>
-                                    <button name="print_etiquette" type="object" string="Imprimer" class="btn-secondary"/>
+                                    
+                                    <!-- 🔥 BOUTON CORRIGÉ : Télécharger l'étiquette PNG -->
+                                    <button name="action_generate_zip_etiquettes" 
+                                            type="object" 
+                                            string="📥 Télécharger" 
+                                            class="btn-success"
+                                            confirm="Générer et télécharger cette étiquette en PNG ?"/>
                                 </list>
                             </field>
+                            
+                            <!-- Bouton pour télécharger toutes les étiquettes en ZIP -->
+                            <div class="oe_button_box" invisible="not etiquette_ids">
+                                <button name="action_generate_zip_etiquettes" 
+                                        type="object" 
+                                        class="oe_stat_button" 
+                                        icon="fa-download"
+                                        string="Télécharger toutes en ZIP">
+                                    <div class="o_field_widget o_stat_info">
+                                        <span class="o_stat_value">
+                                            <i class="fa fa-download"/> ZIP
+                                        </span>
+                                        <span class="o_stat_text">Toutes les étiquettes</span>
+                                    </div>
+                                </button>
+                            </div>
                         </page>
                     </notebook>
                 </sheet>
@@ -76,7 +98,7 @@
         </field>
     </record>
 
-    <!--la vue liste des étiquettes -->
+    <!-- Vue liste des étiquettes - ADAPTÉE -->
     <record id="view_etiquette_tree" model="ir.ui.view">
         <field name="name">kes_inspections.etiquette.list</field>
         <field name="model">kes_inspections.etiquette</field>
@@ -85,64 +107,87 @@
                 <field name="code_etiquette" string="Code unique"/>
                 <field name="product_id" string="Produit"/>
                 <field name="numero_etiquette" string="Numéro"/>
+                <field name="equipement_type" string="Type"/>
                 <field name="date_generation" string="Date génération"/>
-                <button name="print_etiquette" type="object" string="Imprimer" class="btn-secondary"/>
+                
+                <!-- 🔥 BOUTON CORRIGÉ : Télécharger l'étiquette PNG -->
+                <button name="action_generate_zip_etiquettes" 
+                        type="object" 
+                        string="📥 Télécharger" 
+                        class="btn-success"
+                        confirm="Générer et télécharger cette étiquette en PNG ?"/>
             </list>
         </field>
     </record>
 
-    <!--la vue formulaire des étiquettes CORRIGÉE -->
+    <!-- Vue formulaire des étiquettes - ADAPTÉE -->
     <record id="view_etiquette_form" model="ir.ui.view">
         <field name="name">kes_inspections.etiquette.form</field>
         <field name="model">kes_inspections.etiquette</field>
         <field name="arch" type="xml">
             <form string="Étiquette unique">
+                <header>
+                    <!-- 🔥 NOUVEAU : Bouton pour générer l'étiquette -->
+                    <button name="action_generate_zip_etiquettes" 
+                            type="object" 
+                            string="📥 Générer l'étiquette PNG" 
+                            class="btn-primary"
+                            confirm="Générer et télécharger cette étiquette en PNG ?"/>
+                </header>
+                
                 <sheet>
                     <group>
                         <group>
                             <field name="code_etiquette" readonly="1" string="Code étiquette"/>
                             <field name="numero_etiquette" readonly="1" string="Numéro"/>
                             <field name="product_id" readonly="1" string="Produit"/>
+                            <field name="label_template_id" readonly="1" string="Modèle d'étiquette"/>
                         </group>
                         <group>
                             <field name="sous_affaire_id" readonly="1" string="Sous-affaire"/>
                             <field name="affaire_id" readonly="1" string="Affaire"/>
+                            <field name="equipement_type" readonly="1" string="Type d'équipement"/>
                             <field name="date_generation" readonly="1" string="Date génération"/>
                         </group>
                     </group>
+                    
                     <group>
                         <field name="qr_code" string="QR Code" widget="image" options="{'preview_image': 'qr_code'}"/>
-                         <!-- Bouton de téléchargement du QR Code -->
+                         
+                        <!-- Bouton de téléchargement du QR Code -->
                         <button name="download_qr_code" 
                             type="object" 
                             string="Télécharger QR Code" 
-                            class="btn-primary"
+                            class="btn-secondary"
                             invisible="not qr_code" />
                     </group>
                 </sheet>
 
-                <!-- SECTION RAPPORTS - STRUCTURE CORRIGÉE -->
+                <!-- SECTION RAPPORTS -->
                 <sheet>
-               <group string="Rapports associés">
-                    <field name="rapports_ids" string="Rapports" context="{'default_etiquette_id': id}" editable="bottom">
-                        <list string="Liste des rapports">
-                            <field name="name" string="Nom du rapport"/>
-                            <field name="filename" string="Nom du fichier"/>
-                            <field name="file_type" string="Type"/>
-                            <field name="date_upload" string="Date d'upload"/>
-                            <button name="action_download"
-                                    type="object"
-                                    string="Télécharger"
-                                    class="btn-sm"
-                                    icon="fa-download"/>
-                        </list>
-                    </field>
-                </group>
-
+                    <group string="Rapports associés">
+                        <field name="rapports_ids" string="Rapports" context="{'default_etiquette_id': id}" editable="bottom">
+                            <list string="Liste des rapports">
+                                <field name="name" string="Nom du rapport"/>
+                                <field name="filename" string="Nom du fichier"/>
+                                <field name="file_type" string="Type"/>
+                                <field name="date_upload" string="Date d'upload"/>
+                                <button name="action_download"
+                                        type="object"
+                                        string="Télécharger"
+                                        class="btn-sm"
+                                        icon="fa-download"/>
+                            </list>
+                        </field>
+                    </group>
                 </sheet>
 
                 <footer>
-                    <button name="print_etiquette" type="object" string="Imprimer cette étiquette" class="btn-primary"/>
+                    <!-- 🔥 REMPLACÉ : Bouton pour télécharger l'étiquette PNG -->
+                    <button name="action_generate_zip_etiquettes" 
+                            type="object" 
+                            string="📥 Télécharger l'étiquette PNG" 
+                            class="btn-primary"/>
                 </footer>
             </form>
         </field>

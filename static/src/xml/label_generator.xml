@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="label_qr_generator.LabelGenerator" owl="1">
+        <div class="label-generator-component">
+            <t t-if="state.isGenerating">
+                <div class="alert alert-info">
+                    <i class="fa fa-spinner fa-spin"/> Génération des étiquettes en cours...
+                    <div class="progress mt-2" style="height: 8px;">
+                        <div class="progress-bar bg-info" role="progressbar" 
+                             t-att-style="'width: ' + state.progress + '%'"></div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

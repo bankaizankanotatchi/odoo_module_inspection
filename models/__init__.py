@@ -10,3 +10,5 @@ from . import rapport_affaire
 from . import inspecteur
 from . import sous_affaire_inspecteur
 from . import sous_affaire_produit
+from . import label_template
+from . import label_generator
