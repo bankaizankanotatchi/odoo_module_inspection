@@ -120,13 +120,28 @@ class InspectionSousAffaire(models.Model):
     # ─────────────────────────────────────────────────────────────
     
     @api.model
+    def default_get(self, fields_list):
+        """Génère la référence dès les valeurs par défaut"""
+        res = super().default_get(fields_list)
+        
+        # Générer la référence si l'affaire est connue dans le contexte
+        if self._context.get('default_affaire_id'):
+            affaire_id = self._context['default_affaire_id']
+            affaire = self.env['kes_inspections.affaire'].browse(affaire_id)
+            existing_count = self.search_count([('affaire_id', '=', affaire_id)])
+            numero = existing_count + 1
+            res['name'] = f"{affaire.name}/SA{str(numero).zfill(3)}"
+        
+        return res
+
+    @api.model
     def create(self, vals):
-        if vals.get('name', 'Nouvelle') == 'Nouvelle':
-            if vals.get('affaire_id'):
-                affaire = self.env['kes_inspections.affaire'].browse(vals['affaire_id'])
-                existing_count = self.search_count([('affaire_id', '=', vals['affaire_id'])])
-                numero = existing_count + 1
-                vals['name'] = f"{affaire.name}/SA{str(numero).zfill(3)}"
+        # Si la référence n'est pas encore générée, la générer maintenant
+        if not vals.get('name') and vals.get('affaire_id'):
+            affaire = self.env['kes_inspections.affaire'].browse(vals['affaire_id'])
+            existing_count = self.search_count([('affaire_id', '=', vals['affaire_id'])])
+            numero = existing_count + 1
+            vals['name'] = f"{affaire.name}/SA{str(numero).zfill(3)}"
         
         # Assigner automatiquement le chargé d'affaire comme inspecteur par défaut
         sous_affaire = super().create(vals)
@@ -140,7 +155,6 @@ class InspectionSousAffaire(models.Model):
             })
         
         return sous_affaire
-
     # ─────────────────────────────────────────────────────────────
     # 🔸 ACTIONS
     # ─────────────────────────────────────────────────────────────

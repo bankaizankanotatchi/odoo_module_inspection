@@ -1,26 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Vue liste des sous-affaires AVEC DATE CRÉATION -->
+    <!-- Vue liste des sous-affaires AVEC BADGES COLORÉS POUR STATUT -->
     <record id="view_sous_affaire_tree" model="ir.ui.view">
         <field name="name">kes_inspections.sous_affaire.list</field>
         <field name="model">kes_inspections.sous_affaire</field>
         <field name="arch" type="xml">
             <list string="Sous-affaires d'Inspection">
                 <field name="name" string="Référence"/>
-                <field name="affaire_id" string="Affaire parente"/>
+                 <field name="description" string="Description"/>
                 <field name="date_creation" string="Date création"/>
-                <field name="state" string="Statut"/>
-                <field name="description" string="Description"/>
+                <field name="state" string="Statut" widget="badge" 
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'done'"/>
             </list>
         </field>
     </record>
 
-    <!-- Vue Kanban pour les sous-affaires -->
+    <!-- Vue Kanban SANS REGROUPEMENT - Disposition horizontale libre -->
     <record id="view_sous_affaire_kanban" model="ir.ui.view">
         <field name="name">kes_inspections.sous_affaire.kanban</field>
         <field name="model">kes_inspections.sous_affaire</field>
         <field name="arch" type="xml">
-            <kanban class="o_kanban_small_column" default_group_by="state">
+            <kanban>
                 <field name="name"/>
                 <field name="affaire_id"/>
                 <field name="date_creation"/>
@@ -29,19 +31,30 @@
 
                 <templates>
                     <t t-name="kanban-box">
-                        <div t-attf-class="oe_kanban_card oe_kanban_global_click o_kanban_card_#{record.state.raw_value}">
+                        <div class="oe_kanban_card oe_kanban_global_click" style="margin: 10px;">
                             <div class="o_kanban_card_header">
-                                <strong><field name="name"/></strong>
-                                <div class="o_kanban_record_subtitle">
-                                    <field name="affaire_id"/>
-                                </div>
+                                <strong class="o_kanban_record_title">
+                                    <field name="name"/>
+                                </strong>
+                                <span class="float-end">
+                                    <span t-if="record.state.raw_value == 'draft'" 
+                                          class="badge rounded-pill text-bg-info">Brouillon</span>
+                                    <span t-if="record.state.raw_value == 'in_progress'" 
+                                          class="badge rounded-pill text-bg-warning">En cours</span>
+                                    <span t-if="record.state.raw_value == 'done'" 
+                                          class="badge rounded-pill text-bg-success">Terminé</span>
+                                </span>
                             </div>
                             <div class="o_kanban_card_body">
-                                <p><strong>Date création:</strong> <field name="date_creation"/></p>
-                                <p t-if="record.description.raw_value"><strong>Description:</strong> <field name="description"/></p>
-                            </div>
-                            <div class="o_kanban_card_footer">
-                                <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done"/>
+                                <div class="o_kanban_record_subtitle mb-2">
+                                    <i class="fa fa-folder-open"/> <field name="affaire_id"/>
+                                </div>
+                                <div class="mb-1">
+                                    <i class="fa fa-calendar"/> <field name="date_creation"/>
+                                </div>
+                                <div class="mb-1" t-if="record.description.raw_value">
+                                    <i class="fa fa-file-text-o"/> <field name="description"/>
+                                </div>
                             </div>
                         </div>
                     </t>
@@ -85,7 +98,7 @@
                         <field name="description" placeholder="Description détaillée de la sous-affaire..." nolabel="1"/>
                     </group>
 
-                    <!-- NOTEBOOK COMPLET AVEC 6 ONGLETS -->
+                    <!-- NOTEBOOK COMPLET AVEC 7 ONGLETS -->
                     <notebook>
                         <!-- 🔹 Onglet 1: Inspecteurs -->
                         <page string="Inspecteurs">
@@ -125,182 +138,180 @@
                             </group>
                         </page>
 
-                       <!-- l'onglet Étiquettes-->
-                                <page string="Étiquettes">
-                                    <group string="Génération d'étiquettes par produit">
-                                        <div class="alert alert-info" role="alert">
-                                            <strong>Instructions :</strong> 
-                                            Sélectionnez les produits et définissez le nombre d'étiquettes à générer pour chacun.
-                                            Les étiquettes seront créées avec des codes uniques basés sur le produit.
-                                        </div>
+                       <!-- 🔹 Onglet 3: Étiquettes -->
+                        <page string="Étiquettes">
+                            <group string="Génération d'étiquettes par produit">
+                                <div class="alert alert-info" role="alert" style="margin-left: 15px;">
+                                    <strong>Instructions :</strong> 
+                                    Sélectionnez les produits et définissez le nombre d'étiquettes à générer pour chacun.
+                                    Les étiquettes seront créées avec des codes uniques basés sur le produit.
+                                </div>
+                                
+                                <field name="produit_etiquette_ids" context="{'default_sous_affaire_id': id}" editable="bottom">
+                                    <list string="Produits de la commande">
+                                        <field name="product_id" string="Produit" required="1"/>
+                                        <field name="nombre_etiquettes" string="Nombre d'étiquettes" required="1"/>
+                                        <field name="etiquette_count" string="Étiquettes générées" readonly="1"/>
+                                        <field name="etiquettes_generes" string="Statut" readonly="1"/>
                                         
-                                        <field name="produit_etiquette_ids" context="{'default_sous_affaire_id': id}" editable="bottom">
-                                            <list string="Produits de la commande">
-                                                <field name="product_id" string="Produit" required="1"/>
-                                                <field name="nombre_etiquettes" string="Nombre d'étiquettes" required="1"/>
-                                                <field name="etiquette_count" string="Étiquettes générées" readonly="1"/>
-                                                <field name="etiquettes_generes" string="Statut" readonly="1"/>
-                                                
-                                                <button name="action_generer_etiquettes" type="object" string="Générer" class="btn-primary"/>
-                                                <button name="action_voir_etiquettes" type="object" string="Voir étiquettes" class="btn-secondary"/>
-                                            </list>
-                                            
-                                            <form string="Configuration produit">
-                                                <sheet>
-                                                    <group>
-                                                        <group>
-                                                            <field name="product_id" required="1" options="{'no_create': True}"/>
-                                                            <field name="nombre_etiquettes" required="1"/>
-                                                        </group>
-                                                        <group>
-                                                            <field name="etiquette_count" readonly="1"/>
-                                                            <field name="etiquettes_generes" readonly="1"/>
-                                                        </group>
-                                                    </group>
-                                                    <footer>
-                                                        <button string="Générer les étiquettes" name="action_generer_etiquettes" type="object" class="btn-primary"/>
-                                                        <button string="Voir les étiquettes" name="action_voir_etiquettes" type="object" class="btn-secondary"/>
-                                                    </footer>
-                                                </sheet>
-                                            </form>
-                                        </field>
-                                        
-                                        <group>
-                                            <button name="action_generer_toutes_etiquettes" type="object" string="Générer toutes les étiquettes" class="btn-primary"/>
-                                            <button name="action_download_all_etiquettes" type="object" string="Télécharger toutes en ZIP" class="btn-secondary"/>
-                                        </group>
-                                    </group>
+                                        <button name="action_generer_etiquettes" type="object" string="Générer" class="btn-primary"/>
+                                        <button name="action_voir_etiquettes" type="object" string="Voir étiquettes" class="btn-secondary"/>
+                                    </list>
                                     
-                                    <group string="Étiquettes générées (vue globale)">
-                                        <field name="etiquette_ids" readonly="1">
-                                            <list>
-                                                <field name="code_etiquette" string="Code unique"/>
-                                                <field name="product_id" string="Produit" related="sous_affaire_produit_id.product_id"/>
-                                                <field name='numero_etiquette' string="Numéro"/>
-                                                <field name="date_generation" string="Date génération"/>
-                                                <button name="print_etiquette" type="object" string="Imprimer" class="btn-secondary"/>
-                                            </list>
-                                        </field>
-                                    </group>
-                                </page>
+                                    <form string="Configuration produit">
+                                        <sheet>
+                                            <group>
+                                                <group>
+                                                    <field name="product_id" required="1" options="{'no_create': True}"/>
+                                                    <field name="nombre_etiquettes" required="1"/>
+                                                </group>
+                                                <group>
+                                                    <field name="etiquette_count" readonly="1"/>
+                                                    <field name="etiquettes_generes" readonly="1"/>
+                                                </group>
+                                            </group>
+                                            <footer>
+                                                <button string="Générer les étiquettes" name="action_generer_etiquettes" type="object" class="btn-primary"/>
+                                                <button string="Voir les étiquettes" name="action_voir_etiquettes" type="object" class="btn-secondary"/>
+                                            </footer>
+                                        </sheet>
+                                    </form>
+                                </field>
+                                
+                                <group>
+                                    <button name="action_generer_toutes_etiquettes" type="object" string="Générer toutes les étiquettes" class="btn-primary"/>
+                                    <button name="action_download_all_etiquettes" type="object" string="Télécharger toutes en ZIP" class="btn-secondary"/>
+                                </group>
+                            </group>
+                            
+                            <group string="Étiquettes générées (vue globale)">
+                                <field name="etiquette_ids" readonly="1">
+                                    <list>
+                                        <field name="code_etiquette" string="Code unique"/>
+                                        <field name="product_id" string="Produit" related="sous_affaire_produit_id.product_id"/>
+                                        <field name='numero_etiquette' string="Numéro"/>
+                                        <field name="date_generation" string="Date génération"/>
+                                        <button name="print_etiquette" type="object" string="Imprimer" class="btn-secondary"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
 
                         <!-- 🔹 Onglet 4: Rapports -->
-                            <page string="Rapports">
-                                <group>
-                                    <group string="Rapport">
-                                        <field name="rapport_ids" context="{'default_sous_affaire_id': id}" editable="bottom">
-                                            <list string="Rapports PDF/Word">
-                                                <field name="filename"/>
-                                                <field name="file_type" string="Type"/>
-                                                <field name="date_upload"/>
-                                                <button name="action_download" type="object" string="Télécharger" class="btn-secondary"/>
-                                            </list>
-                                            <form string="Rapport">
-                                                <sheet>
-                                                    <group>
-                                                        <field name="filename"/>
-                                                        <field name="file_type" invisible="1"/>
-                                                        <field name="file" widget="binary" filename="filename"/>
-                                                    </group>
-                                                    <footer>
-                                                        <button string="Enregistrer" type="object" special="save" class="btn-primary"/>
-                                                        <button string="Annuler" class="btn-secondary" special="cancel"/>
-                                                    </footer>
-                                                </sheet>
-                                            </form>
-                                        </field>
-                                    </group>
+                        <page string="Rapports">
+                            <group>
+                                <group string="Rapport">
+                                    <field name="rapport_ids" context="{'default_sous_affaire_id': id}" editable="bottom">
+                                        <list string="Rapports PDF/Word">
+                                            <field name="filename"/>
+                                            <field name="file_type" string="Type"/>
+                                            <field name="date_upload"/>
+                                            <button name="action_download" type="object" string="Télécharger" class="btn-secondary"/>
+                                        </list>
+                                        <form string="Rapport">
+                                            <sheet>
+                                                <group>
+                                                    <field name="filename"/>
+                                                    <field name="file_type" invisible="1"/>
+                                                    <field name="file" widget="binary" filename="filename"/>
+                                                </group>
+                                                <footer>
+                                                    <button string="Enregistrer" type="object" special="save" class="btn-primary"/>
+                                                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                                                </footer>
+                                            </sheet>
+                                        </form>
+                                    </field>
                                 </group>
-                            </page>
+                            </group>
+                        </page>
 
-                            <!-- 🔹 Onglet 5: Bon de commande -->
-                            <page string="Bon de commande">
-                                <group>
-                                    <group string="Bon de commande">
-                                        <field name="bond_commande_ids"
-                                            context="{'default_sous_affaire_id': id}"
-                                            editable="bottom">
-                                            <list string="Bons de commande">
-                                                <field name="bond_commande_filename" string="Nom du fichier"/>
-                                                <field name="date_upload" string="Date d'envoi"/>
-                                                <button name="action_download_bond_commande" type="object" string="Télécharger" class="btn-secondary"/>
-                                            </list>
-                                            <form string="Bon de commande">
-                                                <sheet>
-                                                    <group>
-                                                        <field name="bond_commande_filename" string="Nom du fichier"/>
-                                                        <field name="bond_commande_file" widget="binary" filename="bond_commande_filename" string="Fichier bon de commande"/>
-                                                    </group>
-                                                    <footer>
-                                                        <button string="Enregistrer" type="object" special="save" class="btn-primary"/>
-                                                        <button string="Annuler" special="cancel" class="btn-secondary"/>
-                                                    </footer>
-                                                </sheet>
-                                            </form>
-                                        </field>
-                                    </group>
+                        <!-- 🔹 Onglet 5: Bon de commande -->
+                        <page string="Bon de commande">
+                            <group>
+                                <group string="Bon de commande">
+                                    <field name="bond_commande_ids"
+                                        context="{'default_sous_affaire_id': id}"
+                                        editable="bottom">
+                                        <list string="Bons de commande">
+                                            <field name="bond_commande_filename" string="Nom du fichier"/>
+                                            <field name="date_upload" string="Date d'envoi"/>
+                                            <button name="action_download_bond_commande" type="object" string="Télécharger" class="btn-secondary"/>
+                                        </list>
+                                        <form string="Bon de commande">
+                                            <sheet>
+                                                <group>
+                                                    <field name="bond_commande_filename" string="Nom du fichier"/>
+                                                    <field name="bond_commande_file" widget="binary" filename="bond_commande_filename" string="Fichier bon de commande"/>
+                                                </group>
+                                                <footer>
+                                                    <button string="Enregistrer" type="object" special="save" class="btn-primary"/>
+                                                    <button string="Annuler" special="cancel" class="btn-secondary"/>
+                                                </footer>
+                                            </sheet>
+                                        </form>
+                                    </field>
                                 </group>
-                            </page>
+                            </group>
+                        </page>
 
-                            <!-- 🔹 Onglet 6: PV -->
-                            <page string="PV">
-                                <group>
-                                    <group string="Procès-verbal">
-                                        <field name="pv_ids"
-                                            context="{'default_sous_affaire_id': id}"
-                                            editable="bottom">
-                                            <list string="Procès-verbaux">
-                                                <field name="pv_filename" string="Nom du fichier"/>
-                                                <field name="date_upload" string="Date d'envoi"/>
-                                                <button name="action_download_pv" type="object" string="Télécharger" class="btn-secondary"/>
-                                            </list>
-                                            <form string="Procès-verbal">
-                                                <sheet>
-                                                    <group>
-                                                        <field name="pv_filename" string="Nom du fichier"/>
-                                                        <field name="pv_file" widget="binary" filename="pv_filename" string="Fichier PV"/>
-                                                    </group>
-                                                    <footer>
-                                                        <button string="Enregistrer" type="object" special="save" class="btn-primary"/>
-                                                        <button string="Annuler" special="cancel" class="btn-secondary"/>
-                                                    </footer>
-                                                </sheet>
-                                            </form>
-                                        </field>
-                                    </group>
+                        <!-- 🔹 Onglet 6: PV -->
+                        <page string="PV">
+                            <group>
+                                <group string="Procès-verbal">
+                                    <field name="pv_ids"
+                                        context="{'default_sous_affaire_id': id}"
+                                        editable="bottom">
+                                        <list string="Procès-verbaux">
+                                            <field name="pv_filename" string="Nom du fichier"/>
+                                            <field name="date_upload" string="Date d'envoi"/>
+                                            <button name="action_download_pv" type="object" string="Télécharger" class="btn-secondary"/>
+                                        </list>
+                                        <form string="Procès-verbal">
+                                            <sheet>
+                                                <group>
+                                                    <field name="pv_filename" string="Nom du fichier"/>
+                                                    <field name="pv_file" widget="binary" filename="pv_filename" string="Fichier PV"/>
+                                                </group>
+                                                <footer>
+                                                    <button string="Enregistrer" type="object" special="save" class="btn-primary"/>
+                                                    <button string="Annuler" special="cancel" class="btn-secondary"/>
+                                                </footer>
+                                            </sheet>
+                                        </form>
+                                    </field>
                                 </group>
-                            </page>
+                            </group>
+                        </page>
 
-                            <!-- 🔹 Onglet 7: Enquête satisfaction -->
-                            <page string="Enquête satisfaction">
-                                <group>
-                                    <group string="Enquête de satisfaction client">
-                                        <field name="enquete_satisfaction_ids"
-                                            context="{'default_sous_affaire_id': id}"
-                                            editable="bottom">
-                                            <list string="Enquêtes satisfaction">
-                                                <field name="enquete_satisfaction_filename" string="Nom du fichier"/>
-                                                <field name="date_upload" string="Date d'envoi"/>
-                                                <button name="action_download_enquete" type="object" string="Télécharger" class="btn-secondary"/>
-                                            </list>
-                                            <form string="Enquête satisfaction">
-                                                <sheet>
-                                                    <group>
-                                                        <field name="enquete_satisfaction_filename" string="Nom du fichier"/>
-                                                        <field name="enquete_satisfaction_file" widget="binary" filename="enquete_satisfaction_filename" string="Fichier enquête satisfaction"/>
-                                                    </group>
-                                                    <footer>
-                                                        <button string="Enregistrer" type="object" special="save" class="btn-primary"/>
-                                                        <button string="Annuler" special="cancel" class="btn-secondary"/>
-                                                    </footer>
-                                                </sheet>
-                                            </form>
-                                        </field>
-                                    </group>
+                        <!-- 🔹 Onglet 7: Enquête satisfaction -->
+                        <page string="Enquête satisfaction">
+                            <group>
+                                <group string="Enquête de satisfaction client">
+                                    <field name="enquete_satisfaction_ids"
+                                        context="{'default_sous_affaire_id': id}"
+                                        editable="bottom">
+                                        <list string="Enquêtes satisfaction">
+                                            <field name="enquete_satisfaction_filename" string="Nom du fichier"/>
+                                            <field name="date_upload" string="Date d'envoi"/>
+                                            <button name="action_download_enquete" type="object" string="Télécharger" class="btn-secondary"/>
+                                        </list>
+                                        <form string="Enquête satisfaction">
+                                            <sheet>
+                                                <group>
+                                                    <field name="enquete_satisfaction_filename" string="Nom du fichier"/>
+                                                    <field name="enquete_satisfaction_file" widget="binary" filename="enquete_satisfaction_filename" string="Fichier enquête satisfaction"/>
+                                                </group>
+                                                <footer>
+                                                    <button string="Enregistrer" type="object" special="save" class="btn-primary"/>
+                                                    <button string="Annuler" special="cancel" class="btn-secondary"/>
+                                                </footer>
+                                            </sheet>
+                                        </form>
+                                    </field>
                                 </group>
-                            </page>
-
-
+                            </group>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
