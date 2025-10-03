@@ -1,0 +1,48 @@
+.
+├── controllers
+│   ├── controllers.py
+│   └── __init__.py
+├── data
+│   ├── inspecteur_data.xml
+│   └── sequences.xml
+├── demo
+│   └── demo.xml
+├── __init__.py
+├── __manifest__.py
+├── models
+│   ├── equipement.py
+│   ├── etiquette.py
+│   ├── __init__.py
+│   ├── inspecteur.py
+│   ├── inspection_models.py
+│   ├── rapport_affaire.py
+│   ├── rapport.py
+│   ├── sale_order.py
+│   ├── sous_affaire_inspecteur.py
+│   ├── sous_affaire_produit.py
+│   └── sous_affaire.py
+├── README
+├── report
+│   ├── report_actions.xml
+│   ├── report_etiquette_arc_flash_template.xml
+│   ├── report_etiquette_ascenseur_template.xml
+│   ├── report_etiquette_identification_local_template.xml
+│   ├── report_etiquette_inspection_electrique_template.xml
+│   ├── report_etiquette_plaque_identification_template.xml
+│   ├── report_etiquette_thermographie_template.xml
+│   ├── report_etiquette_verification_extincteur_template.xml
+│   └── report_etiquette_verification_periodique_template.xml
+├── security
+│   └── ir.model.access.csv
+└── views
+    ├── equipement_views.xml
+    ├── inspecteur_views.xml
+    ├── inspection_affaire_views.xml
+    ├── menus.xml
+    ├── rapport_affaire_views.xml
+    ├── rapport_views.xml
+    ├── sale_order_views.xml
+    ├── sous_affaire_inspecteur_views.xml
+    └── sous_affaire_views.xml
+
+8 directories, 38 files
