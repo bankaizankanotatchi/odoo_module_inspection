@@ -1,0 +1,25 @@
+<odoo>
+  <template id="report_etiquette_arc_flash_template">
+    <t t-call="web.html_container">
+      <t t-foreach="docs" t-as="etiquette">
+        <div class="page" style="padding:20px; border:1px solid #000; display:inline-block; width: 300px;">
+          <h2 style="text-align:center; font-size:16px;">Etiquette Arc Flash</h2>
+          <p><b>Code :</b> <t t-esc="etiquette.code_etiquette"/></p>
+          <p><b>Nom :</b> <t t-esc="etiquette.equipement_ascii"/></p>
+          <p><b>Type :</b> <t t-esc="etiquette.equipement_type"/></p>
+          <p><b>Date :</b> <t t-esc="etiquette.date_generation"/></p>
+                    <div style="text-align:center; margin-top:15px;">
+                        <!-- le nouveau champ qr_code_pdf -->
+                        <t t-if="etiquette.qr_code_pdf">
+                            <img t-att-src="'data:image/png;base64,' + etiquette.qr_code_pdf" 
+                                 style="width: 80px; height: 80px; border: 1px solid #ddd;"/>
+                        </t>
+                        <div t-else="" style="color: #999; font-size: 12px;">
+                            QR Code non disponible
+                        </div>
+                    </div>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

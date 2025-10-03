@@ -1,0 +1,20 @@
+<!-- views/menus.xml -->
+<odoo>
+    <!-- Menu racine -->
+    <menuitem id="menu_kes_inspections_root" 
+              name="KES Inspections" 
+              sequence="10"/>
+
+    <!-- Action d'ouverture -->
+    <record id="action_inspection_affaire" model="ir.actions.act_window">
+        <field name="name">Affaires d'Inspection</field>
+        <field name="res_model">kes_inspections.affaire</field>
+        <field name="view_mode">list,form,kanban</field>
+    </record>
+
+    <!-- Menu enfant lié à l'action -->
+    <menuitem id="menu_kes_inspections_affaire" 
+              name="Affaires d'Inspection" 
+              parent="menu_kes_inspections_root" 
+              action="action_inspection_affaire"/>
+</odoo>

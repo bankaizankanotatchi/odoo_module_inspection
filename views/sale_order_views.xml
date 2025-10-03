@@ -1,0 +1,21 @@
+<!-- views/sale_order_views.xml - NOUVEAU FICHIER -->
+<odoo>
+    <!-- Héritage du formulaire de commande de vente -->
+    <record id="view_order_form_inherit_inspections" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.inspections</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <!-- Ajout d'un bouton pour voir l'affaire liée -->
+            <xpath expr="//button[@name='action_confirm']" position="after">
+                <button name="action_open_inspection_affaire" 
+                        type="object" 
+                        class="oe_stat_button"
+                        icon="fa-search"
+                        string="Voir Affaire Inspection">
+                    <field name="inspection_affaire_count" widget="statinfo" string="Affaire"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

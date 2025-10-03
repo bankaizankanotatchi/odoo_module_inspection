@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- 🔹 Rapport 1 : Inspection Électrique -->
+        <record id="report_etiquette_inspection_electrique" model="ir.actions.report">
+            <field name="name">Étiquette Inspection Électrique</field>
+            <field name="model">kes_inspections.etiquette</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">kes_inspections.report_etiquette_inspection_electrique_template</field>
+            <field name="report_file">kes_inspections.report_etiquette_inspection_electrique_template</field>
+            <field name="print_report_name">'Etiquette_' + object.code_etiquette</field>
+            <field name="binding_model_id" ref="model_kes_inspections_etiquette"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- 🔹 Rapport 2 : Thermographie -->
+        <record id="report_etiquette_thermographie" model="ir.actions.report">
+            <field name="name">Étiquette Thermographie</field>
+            <field name="model">kes_inspections.etiquette</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">kes_inspections.report_etiquette_thermographie_template</field>
+            <field name="report_file">kes_inspections.report_etiquette_thermographie_template</field>
+            <field name="print_report_name">'Etiquette_' + object.code_etiquette</field>
+            <field name="binding_model_id" ref="model_kes_inspections_etiquette"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- 🔹 Rapport 3 : Identification Local -->
+        <record id="report_etiquette_identification_local" model="ir.actions.report">
+            <field name="name">Étiquette Local Électrique</field>
+            <field name="model">kes_inspections.etiquette</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">kes_inspections.report_etiquette_identification_local_template</field>
+            <field name="report_file">kes_inspections.report_etiquette_identification_local_template</field>
+            <field name="print_report_name">'Etiquette_' + object.code_etiquette</field>
+            <field name="binding_model_id" ref="model_kes_inspections_etiquette"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- 🔹 Rapport 4 : Ascenseur -->
+        <record id="report_etiquette_ascenseur" model="ir.actions.report">
+            <field name="name">Étiquette Ascenseur</field>
+            <field name="model">kes_inspections.etiquette</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">kes_inspections.report_etiquette_ascenseur_template</field>
+            <field name="report_file">kes_inspections.report_etiquette_ascenseur_template</field>
+            <field name="print_report_name">'Etiquette_' + object.code_etiquette</field>
+            <field name="binding_model_id" ref="model_kes_inspections_etiquette"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- 🔹 Rapport 5 : Vérification Périodique -->
+        <record id="report_etiquette_verification_periodique" model="ir.actions.report">
+            <field name="name">Étiquette Vérification Périodique</field>
+            <field name="model">kes_inspections.etiquette</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">kes_inspections.report_etiquette_verification_periodique_template</field>
+            <field name="report_file">kes_inspections.report_etiquette_verification_periodique_template</field>
+            <field name="print_report_name">'Etiquette_' + object.code_etiquette</field>
+            <field name="binding_model_id" ref="model_kes_inspections_etiquette"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- 🔹 Rapport 6 : Extincteur -->
+        <record id="report_etiquette_verification_extincteur" model="ir.actions.report">
+            <field name="name">Étiquette Extincteur</field>
+            <field name="model">kes_inspections.etiquette</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">kes_inspections.report_etiquette_verification_extincteur_template</field>
+            <field name="report_file">kes_inspections.report_etiquette_verification_extincteur_template</field>
+            <field name="print_report_name">'Etiquette_' + object.code_etiquette</field>
+            <field name="binding_model_id" ref="model_kes_inspections_etiquette"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- 🔹 Rapport 7 : Arc Flash -->
+        <record id="report_etiquette_arc_flash" model="ir.actions.report">
+            <field name="name">Étiquette Arc Flash</field>
+            <field name="model">kes_inspections.etiquette</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">kes_inspections.report_etiquette_arc_flash_template</field>
+            <field name="report_file">kes_inspections.report_etiquette_arc_flash_template</field>
+            <field name="print_report_name">'Etiquette_' + object.code_etiquette</field>
+            <field name="binding_model_id" ref="model_kes_inspections_etiquette"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- 🔹 Rapport 8 : Plaque Identification -->
+        <record id="report_etiquette_plaque_identification" model="ir.actions.report">
+            <field name="name">Plaque Identification Extérieure</field>
+            <field name="model">kes_inspections.etiquette</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">kes_inspections.report_etiquette_plaque_identification_template</field>
+            <field name="report_file">kes_inspections.report_etiquette_plaque_identification_template</field>
+            <field name="print_report_name">'Etiquette_' + object.code_etiquette</field>
+            <field name="binding_model_id" ref="model_kes_inspections_etiquette"/>
+            <field name="binding_type">report</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue liste des affaires AVEC COLONNE DÉPARTEMENT -->
+    <record id="view_inspection_affaire_list" model="ir.ui.view">
+        <field name="name">kes_inspections.affaire.list</field>
+        <field name="model">kes_inspections.affaire</field>
+        <field name="arch" type="xml">
+            <list string="Affaires d'Inspection">
+                <field name="name" string="Référence"/>
+                <field name="client_id" string="Client"/>
+                <field name="department_id" string="Département"/>
+                <field name="type_inspection" string="Type d'inspection"/>
+                <field name="sous_affaire_count" string="Sous-affaires"/>
+                <field name="order_date" string="Date création"/>
+                <field name="state" string="Statut"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vue Kanban pour les affaires d'inspection -->
+    <record id="view_inspection_affaire_kanban" model="ir.ui.view">
+        <field name="name">kes_inspections.affaire.kanban</field>
+        <field name="model">kes_inspections.affaire</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column" default_group_by="state">
+                <field name="name"/>
+                <field name="client_id"/>
+                <field name="department_id"/>
+                <field name="type_inspection"/>
+                <field name="state"/>
+                <field name="sous_affaire_count"/>
+                <field name="order_date"/>
+
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click o_kanban_card_#{record.state.raw_value}">
+                            <div class="o_kanban_card_header">
+                                <strong><field name="name"/></strong>
+                                <div class="o_kanban_record_subtitle">
+                                    <field name="client_id"/>
+                                </div>
+                            </div>
+                            <div class="o_kanban_card_body">
+                                <p><strong>Département:</strong> <field name="department_id"/></p>
+                                <p><strong>Type inspection:</strong> <field name="type_inspection"/></p>
+                                <p><strong>Sous-affaires:</strong> <field name="sous_affaire_count"/></p>
+                            </div>
+                            <div class="o_kanban_card_footer">
+                                <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Vue formulaire AFFAIRE PRINCIPALE AVEC NOUVEAUX CHAMPS -->
+    <record id="view_inspection_affaire_form" model="ir.ui.view">
+        <field name="name">kes_inspections.affaire.form</field>
+        <field name="model">kes_inspections.affaire</field>
+        <field name="arch" type="xml">
+            <form string="Affaire d'Inspection">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done"/>
+                    <button name="action_view_sous_affaires" type="object" class="oe_stat_button" icon="fa-sitemap">
+                        <field name="sous_affaire_count" widget="statinfo" string="Sous-affaires"/>
+                    </button>
+                    <button name="action_view_rapport_affaire" type="object" class="oe_stat_button" icon="fa-file-pdf-o">
+                        <field name="rapport_affaire_count" widget="statinfo" string="Rapports"/>
+                    </button>
+                </header>
+
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="sale_order_id" readonly="1"/>
+                            <field name="client_id" readonly="1"/>
+                            <field name="department_id" readonly="1" string="Département"/>
+                        </group>
+                        <group>
+                            <field name="type_inspection" readonly="1"/>
+                            <field name="order_date" string="Date de création" readonly="1"/>
+                            <field name="state"/>
+                        </group>
+                    </group>
+                    
+                    <!-- NOUVEAUX CHAMPS DATE -->
+                    <group string="Planning des interventions">
+                        <group>
+                            <field name="date_debut_intervention" string="Date début intervention terrain"/>
+                            <field name="date_fin_intervention" string="Date fin intervention terrain"/>
+                        </group>
+                        <group>
+                            <field name="date_debut_redaction" string="Date début rédaction rapport"/>
+                            <field name="date_fin_redaction" string="Date fin rédaction rapport"/>
+                        </group>
+                    </group>
+                    
+                    <!-- NOUVEAUX CHAMPS LIEU -->
+                    <group string="Lieux d'intervention">
+                        <group>
+                            <field name="site_intervention" string="Site d'intervention" placeholder="Site principal d'intervention"/>
+                            <field name="lieu_intervention" string="Lieu d'intervention spécifique" placeholder="Lieu détaillé si nécessaire"/>
+                        </group>
+                    </group>
+                    
+                     <!-- CHARGÉ D'AFFAIRE ET SOUS-TRAITANT -->
+                    <group string="Responsable et suivi">
+                        <group>
+                            <field name="charge_affaire_id" string="Chargé d'affaire"/>
+                            <!-- SOUS-TRAITANT -->
+                            <field name="sous_traitant_utilise" string="Utilisation sous-traitant"/>
+                            <field name="sous_traitant_id" 
+                                   string="Sous-traitant"
+                                   invisible="not sous_traitant_utilise"
+                                   placeholder="Sélectionnez un sous-traitant..."/>
+                        </group>
+                        <group>
+                            <field name="alerte_prochaine_inspection" string="Alerte prochaine inspection"/>
+                            <field name="date_prochaine_inspection" string="Date prochaine inspection" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <!-- NOTEBOOK SIMPLIFIÉ : SEULEMENT SOUS-AFFAIRES ET RAPPORTS -->
+                    <notebook>
+                        <!-- Onglet sous-affaires -->
+                        <page string="Sous-affaires">
+                            <field name="sous_affaire_ids" context="{'default_affaire_id': id}" editable="bottom">
+                                <list>
+                                    <field name="name" string="Référence"/>
+                                    <field name="date_creation" string="Date création"/>
+                                    <field name="state" string="Statut"/>
+                                    <field name="description" string="Description"/>
+                                </list>
+                                <form>
+                                    <sheet>
+                                        <group>
+                                            <field name="name" readonly="1"/>
+                                            <field name="affaire_id" readonly="1"/>
+                                            <field name="description" placeholder="Description de la sous-affaire..."/>
+                                            <field name="state"/>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+
+                        <!-- Onglet rapports -->
+                        <page string="Rapports">
+                            <group>
+                                <sheet>
+                                    <field name="rapport_affaire_ids" context="{'default_affaire_id': id}" editable="bottom">
+                                        <list string="Rapports PDF/Word">
+                                            <field name="filename"/>
+                                            <field name="file_type" string="Type"/>
+                                            <field name="date_upload"/>
+                                            <button name="action_download" type="object" string="Télécharger" class="btn-secondary"/>
+                                        </list>
+                                        <form string="Rapport">
+                                            <sheet>
+                                                <group>
+                                                    <field name="filename"/>
+                                                    <field name="file_type"/>
+                                                    <field name="file" widget="binary" filename="filename"/>
+                                                </group>
+                                                <footer>
+                                                    <button string="Enregistrer et fermer" type="object" special="save" class="btn-primary"/>
+                                                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                                                </footer>
+                                            </sheet>
+                                        </form>
+                                    </field>
+                                </sheet>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

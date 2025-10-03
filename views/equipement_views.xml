@@ -1,0 +1,151 @@
+<!-- views/equipement_views.xml -->
+<odoo>
+    <!-- Vue liste des équipements -->
+    <record id="view_equipement_tree" model="ir.ui.view">
+        <field name="name">kes_inspections.equipement.list</field>
+        <field name="model">kes_inspections.equipement</field>
+        <field name="arch" type="xml">
+            <list string="Équipements à inspecter">
+                <field name="code_equipement" string="Code"/>
+                <field name="name" string="Nom"/>
+                <field name="type_equipement" string="Type"/>
+                <field name="localisation" string="Localisation"/>
+                <field name="nombre_etiquettes" string="Étiquettes à générer"/>
+                <field name="total_etiquettes_generees" string="Étiquettes générées"/>
+                <field name="state" string="Statut"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vue formulaire des équipements -->
+    <record id="view_equipement_form" model="ir.ui.view">
+        <field name="name">kes_inspections.equipement.form</field>
+        <field name="model">kes_inspections.equipement</field>
+        <field name="arch" type="xml">
+            <form string="Équipement d inspection">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="a_inspecter,en_cours,inspecte,conforme,non_conforme"/>
+                    <button name="action_generer_etiquettes" type="object" string="Générer Étiquettes" 
+                            class="btn-primary"/>
+                    <button name="action_voir_etiquettes" type="object" string="Voir Étiquettes" 
+                            class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code_equipement" readonly="1" string="Code équipement"/>
+                            <field name="affaire_id" readonly="1" string="Affaire parente"/>
+                            <field name="type_equipement" required="1" string="Type d'équipement"/>
+                        </group>
+                        <group>
+                            <field name="name" required="1" string="Nom de l'équipement"/>
+                            <field name="localisation" string="Localisation précise"/>
+                            <field name="state" string="Statut"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <field name="description" placeholder="Description détaillée de l'équipement..." nolabel="1"/>
+                    </group>
+                    
+                    <group>
+                        <group>
+                            <field name="nombre_etiquettes" required="1" string="Nombre d'étiquettes à générer"/>
+                            <field name="total_etiquettes_generees" string="Étiquettes déjà générées" readonly="1"/>
+                            <field name="etiquettes_generes" string="Étiquettes générées" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <!-- ONGLET POUR VOIR LES ÉTIQUETTES GÉNÉRÉES -->
+                    <notebook>
+                        <page string="Étiquettes générées">
+                            <field name="etiquette_ids" readonly="1">
+                                <list>
+                                    <field name="code_etiquette" string="Code unique"/>
+                                    <field name="numero_etiquette" string="Numéro"/>
+                                    <field name="equipement_name" string="Équipement"/>
+                                    <field name="date_generation" string="Date génération"/>
+                                    <field name="qr_code" string="QR Code" widget="image" options="{'preview_image': 'qr_code'}"/>
+                                    <button name="print_etiquette" type="object" string="Imprimer" class="btn-secondary"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!--la vue liste des étiquettes -->
+    <record id="view_etiquette_tree" model="ir.ui.view">
+        <field name="name">kes_inspections.etiquette.list</field>
+        <field name="model">kes_inspections.etiquette</field>
+        <field name="arch" type="xml">
+            <list string="Étiquettes générées">
+                <field name="code_etiquette" string="Code unique"/>
+                <field name="product_id" string="Produit"/>
+                <field name="numero_etiquette" string="Numéro"/>
+                <field name="date_generation" string="Date génération"/>
+                <button name="print_etiquette" type="object" string="Imprimer" class="btn-secondary"/>
+            </list>
+        </field>
+    </record>
+
+    <!--la vue formulaire des étiquettes CORRIGÉE -->
+    <record id="view_etiquette_form" model="ir.ui.view">
+        <field name="name">kes_inspections.etiquette.form</field>
+        <field name="model">kes_inspections.etiquette</field>
+        <field name="arch" type="xml">
+            <form string="Étiquette unique">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code_etiquette" readonly="1" string="Code étiquette"/>
+                            <field name="numero_etiquette" readonly="1" string="Numéro"/>
+                            <field name="product_id" readonly="1" string="Produit"/>
+                        </group>
+                        <group>
+                            <field name="sous_affaire_id" readonly="1" string="Sous-affaire"/>
+                            <field name="affaire_id" readonly="1" string="Affaire"/>
+                            <field name="date_generation" readonly="1" string="Date génération"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="qr_code" string="QR Code" widget="image" options="{'preview_image': 'qr_code'}"/>
+                         <!-- Bouton de téléchargement du QR Code -->
+                        <button name="download_qr_code" 
+                            type="object" 
+                            string="Télécharger QR Code" 
+                            class="btn-primary"
+                            invisible="not qr_code" />
+                    </group>
+                </sheet>
+
+                <!-- SECTION RAPPORTS - STRUCTURE CORRIGÉE -->
+                <sheet>
+               <group string="Rapports associés">
+                    <field name="rapports_ids" string="Rapports" context="{'default_etiquette_id': id}" editable="bottom">
+                        <list string="Liste des rapports">
+                            <field name="name" string="Nom du rapport"/>
+                            <field name="filename" string="Nom du fichier"/>
+                            <field name="file_type" string="Type"/>
+                            <field name="date_upload" string="Date d'upload"/>
+                            <button name="action_download"
+                                    type="object"
+                                    string="Télécharger"
+                                    class="btn-sm"
+                                    icon="fa-download"/>
+                        </list>
+                    </field>
+                </group>
+
+                </sheet>
+
+                <footer>
+                    <button name="print_etiquette" type="object" string="Imprimer cette étiquette" class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

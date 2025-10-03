@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue liste pour les inspecteurs assignés aux sous-affaires -->
+    <record id="view_sous_affaire_inspecteur_tree" model="ir.ui.view">
+        <field name="name">kes_inspections.sous_affaire_inspecteur.list</field>
+        <field name="model">kes_inspections.sous_affaire_inspecteur</field>
+        <field name="arch" type="xml">
+            <list string="Inspecteurs assignés">
+                <field name="sous_affaire_id" string="Sous-affaire"/>
+                <field name="inspecteur_id" string="Inspecteur"/>
+                <field name="role" string="Rôle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vue formulaire pour l'assignation d'inspecteur -->
+    <record id="view_sous_affaire_inspecteur_form" model="ir.ui.view">
+        <field name="name">kes_inspections.sous_affaire_inspecteur.form</field>
+        <field name="model">kes_inspections.sous_affaire_inspecteur</field>
+        <field name="arch" type="xml">
+            <form string="Assignation d'inspecteur">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="sous_affaire_id" readonly="1"/>
+                            <field name="inspecteur_id" required="1" options="{'no_create': True}"/>
+                            <field name="role" required="1"/>
+                        </group>
+                        <group>
+                            <field name="nom_complet" readonly="1"/>
+                            <field name="poste" readonly="1"/>
+                            <field name="email" readonly="1"/>
+                            <field name="telephone" readonly="1"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button string="Enregistrer" type="object" special="save" class="btn-primary"/>
+                        <button string="Annuler" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,41 @@
+<odoo>
+    <!-- Vue liste des rapports d'affaire -->
+    <record id="view_rapport_affaire_tree" model="ir.ui.view">
+        <field name="name">kes_inspections.rapport.affaire.list</field>
+        <field name="model">kes_inspections.rapport.affaire</field>
+        <field name="arch" type="xml">
+            <list string="Rapports Affaires">
+                <field name="filename"/>
+                <field name="date_upload"/>
+                <button name="action_download" type="object" string="Télécharger" class="btn-secondary"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vue formulaire des rapports d'affaire avec QR code -->
+    <record id="view_rapport_affaire_form" model="ir.ui.view">
+        <field name="name">kes_inspections.rapport.affaire.form</field>
+        <field name="model">kes_inspections.rapport.affaire</field>
+        <field name="arch" type="xml">
+            <form string="Rapport Affaire PDF">
+                <sheet>
+                    <group>
+                        <group col="1">
+                            <!-- QR code de l'affaire -->
+                            <field name="qrcode_affaire" widget="image" readonly="1" string="QR Code Affaire"/>
+                        </group>
+                        <group col="2">
+                            <!-- Formulaire de rapport -->
+                            <field name="filename"/>
+                            <field name="file" widget="binary" filename="filename"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button string="Enregistrer et fermer" type="object" special="save" class="btn-primary"/>
+                        <button string="Annuler" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

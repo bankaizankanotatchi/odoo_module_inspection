@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue liste des inspecteurs -->
+    <record id="view_inspecteur_tree" model="ir.ui.view">
+        <field name="name">kes_inspections.inspecteur.list</field>
+        <field name="model">kes_inspections.inspecteur</field>
+        <field name="arch" type="xml">
+            <list string="Inspecteurs">
+                <field name="employee_id"/>
+                <field name="nom_complet"/>
+                <field name="poste"/>
+                <field name="email"/>
+                <field name="disponibilite"/>
+                <field name="planning_count" string="Missions en cours"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vue Kanban pour les inspecteurs -->
+    <record id="view_inspecteur_kanban" model="ir.ui.view">
+        <field name="name">kes_inspections.inspecteur.kanban</field>
+        <field name="model">kes_inspections.inspecteur</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column" default_group_by="disponibilite">
+                <field name="employee_id"/>
+                <field name="nom_complet"/>
+                <field name="poste"/>
+                <field name="email"/>
+                <field name="telephone"/>
+                <field name="disponibilite"/>
+                <field name="planning_count"/>
+
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click o_kanban_card_#{record.disponibilite.raw_value}">
+                            <!-- En-tête : Nom et poste -->
+                            <div class="o_kanban_card_header">
+                                <strong><field name="nom_complet"/></strong>
+                                <div class="o_kanban_record_subtitle">
+                                    <field name="poste"/>
+                                </div>
+                            </div>
+                            <!-- Corps : détails -->
+                            <div class="o_kanban_card_body">
+                                <p><strong>Email:</strong> <field name="email"/></p>
+                                <p><strong>Téléphone:</strong> <field name="telephone"/></p>
+                                <p><strong>Missions:</strong> <field name="planning_count"/></p>
+                            </div>
+                            <!-- Pied : disponibilité et actions -->
+                            <div class="o_kanban_card_footer">
+                                <p><strong>Disponibilité:</strong> <field name="disponibilite"/></p>
+                                <div style="margin-top: 10px;">
+                                    <button type="object" name="action_voir_planning" class="btn btn-sm btn-primary" string="Voir Planning"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Vue formulaire inspecteur AVEC PLANNING -->
+    <record id="view_inspecteur_form" model="ir.ui.view">
+        <field name="name">kes_inspections.inspecteur.form</field>
+        <field name="model">kes_inspections.inspecteur</field>
+        <field name="arch" type="xml">
+            <form string="Inspecteur">
+                <header>
+                    <button name="action_voir_planning" type="object" class="oe_stat_button" icon="fa-calendar">
+                        <field name="planning_count" widget="statinfo" string="Missions"/>
+                    </button>
+                </header>
+                
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="nom_complet" readonly="1"/>
+                            <field name="poste" readonly="1"/>
+                            <field name="disponibilite" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="email" readonly="1"/>
+                            <field name="telephone" readonly="1"/>
+                            <field name="photo" widget="image" options="{'preview_image': 'photo'}" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <field name="description" placeholder="Description ou mission spécifique de l'inspecteur..." nolabel="1"/>
+                    </group>
+
+                    <!-- ONGLET PLANNING -->
+                    <notebook>
+                        <page string="Planning des missions">
+                            <field name="planning_sous_affaire_ids" readonly="1">
+                                <list string="Sous-affaires assignées">
+                                    <field name="name" string="Référence"/>
+                                    <field name="affaire_id" string="Affaire parente"/>
+                                    <field name="state" string="Statut"/>
+                                    <field name="date_creation" string="Date création"/>
+                                    <field name="description" string="Description"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="Affaires principales">
+                            <field name="affaire_ids" readonly="1">
+                                <list string="Affaires assignées">
+                                    <field name="name" string="Référence"/>
+                                    <field name="client_id" string="Client"/>
+                                    <field name="state" string="Statut"/>
+                                    <field name="order_date" string="Date création"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,18 @@
+<odoo>
+  <template id="report_etiquette_ascenseur_template">
+    <t t-call="web.html_container">
+      <t t-foreach="docs" t-as="etiquette">
+        <div class="page" style="padding:20px; border:1px solid #000; display:inline-block; width: 300px;">
+          <h2 style="text-align:center; font-size:16px;">Étiquette Ascenseur</h2>
+          <p><b>Code :</b> <t t-esc="etiquette.code_etiquette"/></p>
+          <p><b>Nom :</b> <t t-esc="etiquette.equipement_name"/></p>
+          <p><b>Quantité :</b> <t t-esc="etiquette.numero_etiquette"/></p>
+          <p><b>Date :</b> <t t-esc="etiquette.date_generation"/></p>
+          <div style="text-align:center; margin-top:10px;">
+            <img t-att-src="'data:image/png;base64,%s' % etiquette.qr_code" width="80" height="80"/>
+          </div>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

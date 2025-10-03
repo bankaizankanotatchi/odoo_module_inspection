@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_rapport_tree" model="ir.ui.view">
+        <field name="name">kes_inspections.rapport.list</field>
+        <field name="model">kes_inspections.rapport</field>
+        <field name="arch" type="xml">
+            <list string="Rapports">
+                <field name="filename"/>
+                <field name="file_type" string="Type"/>
+                <field name="sous_affaire_id" string="Sous-affaire"/>
+                <field name="date_upload"/>
+                <button name="action_download" type="object" string="Télécharger" class="btn-secondary"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_rapport_form" model="ir.ui.view">
+        <field name="name">kes_inspections.rapport.form</field>
+        <field name="model">kes_inspections.rapport</field>
+        <field name="arch" type="xml">
+            <form string="Rapport PDF/Word">
+                <sheet>
+                    <group>
+                        <field name="filename" string="Nom du fichier"/>
+                        <field name="file_type" string="Type de fichier" invisible='1'/>
+                        <field name="sous_affaire_id" string="Sous-affaire" invisible='1'/>
+                    </group>
+                    <group>
+                        <field name="file" widget="binary" filename="filename" string="Fichier"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Enregistrer" type="object" special="save" class="btn-primary"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
